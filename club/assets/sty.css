@@ -1,0 +1,121 @@
+/* Reset */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Poppins', sans-serif; line-height: 1.6; scroll-behavior: smooth; }
+
+/* Navbar */
+.navbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 15px 40px; background: #111; color: #fff;
+  position: sticky; top: 0; z-index: 1000;
+}
+.logo { font-size: 1.5rem; font-weight: bold; }
+.logo span { color: #ffffff;  }
+.logo span { color: #fee214;  }
+.nav-links { list-style: none; display: flex; gap: 20px; }
+.nav-links li a {
+  color: #ffffff; text-decoration: none; font-weight: 500; position: relative;
+}
+.nav-links li a::after {
+  content: ""; position: absolute; width: 0; height: 2px;
+  bottom: -3px; left: 0; background: #fdd835;
+  transition: width 0.3s;
+}
+.nav-links li a:hover::after { width: 100%; }
+.hamburger { display: none; cursor: pointer; }
+
+/* Hero */
+.hero {
+  height: 70vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  background: linear-gradient(135deg, #6a0dad, #00b8f0);
+  color: #fff; text-align: center;
+}
+.hero h1 { font-size: 3rem; margin-bottom: 15px; }
+.hero p { font-size: 1.2rem; }
+
+/* Club Info Section */
+.club-info {
+  max-width: 900px;
+  margin: auto;
+  padding: 80px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #f3e7ff, #e3f2fd);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.club-info h2 {
+  margin-bottom: 20px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #6a0dad;
+  position: relative;
+  display: inline-block;
+}
+
+.club-info h2::after {
+  content: "";
+  display: block;
+  width: 60%;
+  height: 3px;
+  margin: 10px auto 0;
+  background: #fdd835;
+  border-radius: 5px;
+}
+
+.club-info p {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 2rem;
+}
+
+.club-details {
+  list-style: none;
+  text-align: left;
+  padding: 0;
+}
+
+.club-details li {
+  font-size: 1.1rem;
+  margin: 12px 0;
+  padding: 12px 18px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(106, 13, 173, 0.15);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.club-details li:hover {
+  transform: translateX(8px);
+  box-shadow: 0 6px 20px rgba(106, 13, 173, 0.25);
+}
+
+
+/* Team Section */
+.team-section { padding: 60px 20px; text-align: center; }
+.team-members {
+  display: flex; justify-content: center; flex-wrap: wrap;
+  gap: 20px;
+}
+.team-member {
+  background: #f8f8f8; padding: 20px; border-radius: 12px;
+  width: 220px; transition: transform 0.4s, box-shadow 0.4s;
+}
+.team-member:hover {
+  transform: translateY(-10px) scale(1.05);
+  box-shadow: 0 12px 30px rgba(106, 13, 173, 0.3);
+}
+
+/* Footer */
+footer { background: #111; color: #aaa; text-align: center; padding: 20px; }
+.footer-links { margin-bottom: 10px; }
+.footer-links a { color: #fdd835; margin: 0 10px; text-decoration: none; }
+.footer-links a:hover { color: #fff; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  .nav-links { display: none; flex-direction: column; background: #111; position: absolute; top: 60px; right: 0; width: 200px; }
+  .nav-links.show { display: flex; }
+  .hamburger { display: block; color: #fff; font-size: 1.5rem; }
+  .hero h1 { font-size: 2rem; }
+}
