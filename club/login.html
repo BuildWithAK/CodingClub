@@ -5,85 +5,93 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - Coding Club</title>
   <link rel="stylesheet" href="assets/style.css">
-
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f4f4f9; margin:0; }
+    nav { background:#222; padding:1em; color:#fff; display:flex; justify-content:center; }
+    nav ul { list-style:none; display:flex; gap:15px; margin:0; padding:0; }
+    nav ul li a { color:#fff; text-decoration:none; }
+    main { display:flex; justify-content:center; align-items:center; min-height:80vh; }
+    .login { background:#fff; padding:2em; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.1); width:350px; text-align:center; }
+    .form-group { margin:0.8em 0; }
+    input, select { width:100%; padding:0.5em; border-radius:5px; border:1px solid #ccc; }
+    .submit-btn, .google-btn { margin-top:1em; padding:0.6em 1em; width:100%; border:none; border-radius:5px; cursor:pointer; }
+    .submit-btn { background:#27ae60; color:white; }
+    .google-btn { background:#4285f4; color:white; }
+    .toggle-link { cursor:pointer; color:blue; text-decoration:underline; margin-top:1em; display:block; }
+    .form-section { opacity:0; max-height:0; overflow:hidden; transition: all 0.5s ease; }
+    .form-section.active { opacity:1; max-height:1000px; }
+    #signUpMessage, #signInMessage { margin-top:1em; }
+  </style>
 </head>
 <body>
-  <header>
-    <nav>
-      <ul id="nav-menu">
-        <li><a href="index.html">Home</a></li>
-        <li><a href="lectures.html">Online Lectures</a></li>
-        <li><a href="notes.html">Notes</a></li>
-        <li><a href="tasks.html">Daily Tasks</a></li>
-        <li><a href="tests.html">Weekly Tests</a></li>
-        <li><a href="dashboard.html">Student Dashboard</a></li>
-      </ul>
-    </nav>
-  </header>
+  <nav>
+    <ul id="nav-menu">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="lectures.html">Online Lectures</a></li>
+      <li><a href="notes.html">Notes</a></li>
+      <li><a href="tasks.html">Daily Tasks</a></li>
+      <li><a href="tests.html">Weekly Tests</a></li>
+      <li><a href="newdashboard.html">Dashboard</a></li>
+    </ul>
+  </nav>
 
   <main>
     <section class="login center-items">
-      <h2>Login to Coding Club</h2>
-      <form id="login-form">
-        <div class="form-group">
-          <input type="text" name="fullName" placeholder="Full Name" required>
-        </div>
-        <div class="form-group">
-          <input type="email" name="email" placeholder="Email Address" required>
-        </div>
-        <div class="form-group">
-          <input type="text" name="college" placeholder="College Name" required>
-        </div>
-        <div class="form-group">
-          <select name="year" required>
-            <option value="">Select Year of Study</option>
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-            <option value="4">4th Year</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <input type="text" name="username" placeholder="Username" required>
-        </div>
-        <div class="form-group">
-          <input type="password" name="password" placeholder="Password" required>
-          <small class="password-hint">
-            Password must contain at least one capital letter, one number, and one special character
-          </small>
-        </div>
-        <button type="submit" class="submit-btn">Create Account</button>
-      </form>
-
-      <div style="margin: 1.5em 0; text-align: center;">
-        <span>or</span>
+      <!-- Sign Up -->
+      <div id="signup-section" class="form-section active">
+        <h2>Sign Up (New User)</h2>
+        <form id="signup-form">
+          <div class="form-group"><input type="text" id="fName" placeholder="Full Name" required></div>
+          <div class="form-group"><input type="text" id="college" placeholder="College Name" required></div>
+          <div class="form-group">
+            <select id="year" required>
+              <option value="">Select Year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+          <div class="form-group"><input type="email" id="rEmail" placeholder="Email Address" required></div>
+          <div class="form-group">
+            <input type="password" id="rPassword" placeholder="Password" required>
+            <small>Password must contain at least one capital letter, number & special char</small>
+          </div>
+          <button type="submit" id="submitSignUp" class="submit-btn">Create Account</button>
+        </form>
+        <div id="signUpMessage" style="color:red;"></div>
+        <span class="toggle-link" id="showSignIn">Already have an account? Sign In</span>
       </div>
+<br><br>
+         
+ <div style=" justify-content: center;">
+                <button style="background: #ffffff; color: #e5e5e5; border: 1px solid #0008ff; padding: 0.7em 2em; border-radius: 4px; font-size: 1em; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
+  <li><a href="Admin/admin-register.html">Admin Login</a></li>
+  
+</button>
 
-      <!-- Google Sign-In -->
-      <div id="g_id_onload"
-           data-client_id="509204281095-2ivj0ljgi1eg3erh2d4vemkkbgdthg7s.apps.googleusercontent.com"
-           data-context="signup"
-           data-callback="handleGoogleResponse"
-           data-auto_prompt="false">
       </div>
-
-      <div class="g_id_signin"
-           data-type="standard"
-           data-shape="rectangular"
-           data-theme="outline"
-           data-text="signup_with"
-           data-size="large"
-           data-logo_alignment="left">
+      <!-- Sign In -->
+      <div id="signin-section" class="form-section">
+        <h2>Sign In (Existing User)</h2>
+        <form id="signin-form">
+          <div class="form-group"><input type="email" id="email" placeholder="Email Address" required></div>
+          <div class="form-group"><input type="password" id="password" placeholder="Password" required></div>
+          <button type="submit" id="submitSignIn" class="submit-btn">Login</button>
+        </form>
+        <div id="signInMessage" style="color:green;"></div>
+        <span class="toggle-link" id="showSignUp">Don't have an account? Create Account</span>
       </div>
 
-      <div id="login-success" style="display:none; color:green; margin-top:1em;">
-        Login successful! Redirecting...
-      </div>
-      <div id="login-error" style="display:none; color:red; margin-top:1em;">
-        Invalid username or password.
-      </div>
+      <div style="margin: 1.5em 0; text-align:center;">or</div>
+ <div style="display: flex; justify-content: center;">
+                <button id="googleLogin" style="background: #fff; color: #444; border: 1px solid #ddd; padding: 0.7em 2em; border-radius: 4px; font-size: 1em; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; align-items: center; gap: 0.5em; cursor: pointer;">
+  <img src="https://www.svgrepo.com/show/355037/google.svg" 
+       alt="Google Logo" style="width:20px; height:20px;">
+  Login with Google
+</button>
+
     </section>
   </main>
 
@@ -97,65 +105,107 @@
     <p>&copy; 2025 Coding Club. All rights reserved.</p>
   </footer>
 
-  <script>
-    // Normal form login validation
-    document.getElementById('login-form').addEventListener('submit', function(e) {
+  <!-- Firebase and Toggle JS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, setDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAn5x2mrHMe9tVAEGDL7XbQoL6RG-xbUfw",
+      authDomain: "codingclub-website.firebaseapp.com",
+      projectId: "codingclub-website",
+      storageBucket: "codingclub-website.firebasestorage.app",
+      messagingSenderId: "349607815709",
+      appId: "1:349607815709:web:edbdfe68f217fba585f4f4",
+      measurementId: "G-5NDXD3NWK2"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // Toggle forms
+    const signupSection = document.getElementById("signup-section");
+    const signinSection = document.getElementById("signin-section");
+    document.getElementById("showSignIn").addEventListener("click", () => {
+      signupSection.classList.remove("active");
+      signinSection.classList.add("active");
+    });
+    document.getElementById("showSignUp").addEventListener("click", () => {
+      signinSection.classList.remove("active");
+      signupSection.classList.add("active");
+    });
+
+    // ---------------- Sign Up ----------------
+    document.getElementById("signup-form").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const fullname = document.getElementById("fName").value.trim();
+      const college = document.getElementById("college").value.trim();
+      const year = document.getElementById("year").value.trim();
+      const email = document.getElementById("rEmail").value.trim();
+      const password = document.getElementById("rPassword").value.trim();
+      const msgDiv = document.getElementById("signUpMessage");
 
-      const username = this.username.value.trim();
-      const password = this.password.value.trim();
-
-      const passwordPattern = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-
-      if (!username || !password) {
-        showError("All fields are required!");
+      if(!fullname || !college || !year || !email || !password){
+        msgDiv.textContent = "All fields are required!";
         return;
       }
 
-      if (!passwordPattern.test(password)) {
-        showError("Password must contain at least one capital letter, one number, and one special character");
-        return;
-      }
-
-      // Dummy authentication (replace with real backend check)
-      if (username === "admin" && password === "Admin@123") {
-        showSuccess();
-      } else {
-        showError("Invalid username or password.");
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await setDoc(doc(db,"users",user.uid), { fullname, college, year, email, createdAt: new Date().toISOString() });
+        msgDiv.style.color="green";
+        msgDiv.textContent="Account created! Redirecting...";
+        setTimeout(()=>window.location.href="newdashboard.html",1000);
+      } catch(error){
+        msgDiv.style.color="red";
+        msgDiv.textContent = error.message;
       }
     });
 
-    // Google Sign-In callback
-    function handleGoogleResponse(response) {
-      const jwt = response.credential;
-      console.log("Google JWT Token:", jwt);
+    // ---------------- Sign In ----------------
+    document.getElementById("signin-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const msgDiv = document.getElementById("signInMessage");
 
-      // You can send JWT to backend for verification
-      showSuccess("Google login successful!");
-    }
+      if(!email || !password){
+        msgDiv.textContent="Email & Password required!";
+        return;
+      }
 
-    // Utility functions
-    function showError(message) {
-      const errorDiv = document.getElementById('login-error');
-      errorDiv.style.display = 'block';
-      errorDiv.textContent = message;
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth,email,password);
+        msgDiv.style.color="green";
+        msgDiv.textContent="Login successful! Redirecting...";
+        setTimeout(()=>window.location.href="newdashboard.html",1000);
+      } catch(error){
+        msgDiv.style.color="red";
+        msgDiv.textContent=error.message;
+      }
+    });
 
-      const successDiv = document.getElementById('login-success');
-      successDiv.style.display = 'none';
-    }
+    // ---------------- Google Login ----------------
+    document.getElementById("googleLogin").addEventListener("click", async ()=>{
+      try {
+        const result = await signInWithPopup(auth, provider);
+        const user = result.user;
+        const docRef = doc(db,"users",user.uid);
+        const userSnap = await getDoc(docRef);
+        if(!userSnap.exists()){
+          await setDoc(docRef, { fullname: user.displayName || "Google User", college:"N/A", year:"N/A", email:user.email, createdAt:new Date().toISOString() });
+        }
+        window.location.href="newdashboard.html";
+      } catch(error){
+        alert("Google login failed!");
+        console.error(error);
+      }
+    });
 
-    function showSuccess(message = "Login successful! Redirecting...") {
-      const successDiv = document.getElementById('login-success');
-      successDiv.style.display = 'block';
-      successDiv.textContent = message;
-
-      const errorDiv = document.getElementById('login-error');
-      errorDiv.style.display = 'none';
-
-      setTimeout(() => {
-        window.location.href = "dashboard.html";
-      }, 2000);
-    }
   </script>
 </body>
 </html>

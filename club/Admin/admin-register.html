@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Register - Coding Club</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<div class="bg-white p-6 rounded shadow-md w-full max-w-md">
+  <h2 class="text-xl font-bold mb-4">Admin Register</h2>
+  <input type="text" id="fullname" placeholder="Full Name" class="w-full p-2 mb-2 border rounded"/>
+  <input type="email" id="email" placeholder="Email" class="w-full p-2 mb-2 border rounded"/>
+  <input type="password" id="password" placeholder="Password" class="w-full p-2 mb-2 border rounded"/>
+  <button id="registerBtn" class="w-full bg-green-500 text-white p-2 rounded">Register</button>
+  <p class="mt-2 text-sm">Already have an account? <a href="admin-login.html" class="text-blue-500">Login</a></p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAn5x2mrHMe9tVAEGDL7XbQoL6RG-xbUfw",
+  authDomain: "codingclub-website.firebaseapp.com",
+  projectId: "codingclub-website",
+  storageBucket: "codingclub-website.firebasestorage.app",
+  messagingSenderId: "349607815709",
+  appId: "1:349607815709:web:edbdfe68f217fba585f4f4",
+  measurementId: "G-5NDXD3NWK2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById('registerBtn').onclick = async ()=>{
+  const fullname = document.getElementById('fullname').value;
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  try{
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db,'users',cred.user.uid), {
+      fullname, email, role:'admin', createdAt:new Date(), weeklyTotal:0
+    });
+    alert('Admin registered successfully!');
+    window.location.href='admin-login.html';
+  }catch(err){ alert(err.message); }
+};
+</script>
+</body>
+</html>

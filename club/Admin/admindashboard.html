@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Coding Club</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="assets/sty.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+<header class="bg-green-500 text-white p-4 flex justify-between items-center">
+  <h1 class="text-xl font-bold">Admin Dashboard</h1>
+  <button id="logoutBtn" class="bg-white text-green-500 px-4 py-2 rounded">Logout</button>
+</header>
+
+<main class="flex-1 max-w-7xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+  <!-- Left Panel: Leaderboard & User Chart -->
+  <div class="md:col-span-2 space-y-6">
+
+    <div class="bg-white p-4 rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Weekly Leaderboard</h3>
+      <div id="leaderboardList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+    </div>
+
+    <div class="bg-white p-4 rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Manage Users</h3>
+      <div id="usersList" class="space-y-2 max-h-96 overflow-y-auto"></div>
+    </div>
+
+  </div>
+
+  <!-- Right Panel: Selected User Details -->
+  <aside class="space-y-6">
+    <div class="bg-white p-4 rounded shadow">
+      <h3 class="text-lg font-semibold mb-2">Selected User</h3>
+      <div id="selectedUser" class="space-y-2">
+        <p>Select a user from the list</p>
+      </div>
+      <canvas id="userProgressChart" height="150"></canvas>
+    </div>
+  </aside>
+
+</main>
+
+
+ 
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAn5x2mrHMe9tVAEGDL7XbQoL6RG-xbUfw",
+  authDomain: "codingclub-website.firebaseapp.com",
+  projectId: "codingclub-website",
+  storageBucket: "codingclub-website.firebasestorage.app",
+  messagingSenderId: "349607815709",
+  appId: "1:349607815709:web:edbdfe68f217fba585f4f4",
+  measurementId: "G-5NDXD3NWK2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+const logoutBtn = document.getElementById('logoutBtn');
+const leaderboardList = document.getElementById('leaderboardList');
+const usersList = document.getElementById('usersList');
+const selectedUserDiv = document.getElementById('selectedUser');
+const userProgressChartCtx = document.getElementById('userProgressChart').getContext('2d');
+
+let chartInstance = null;
+let selectedUserId = null;
+
+logoutBtn.onclick = ()=>signOut(auth);
+
+// Ensure admin login
+onAuthStateChanged(auth, async user=>{
+  if(!user) window.location.href='admin-login.html';
+});
+
+// Real-time leaderboard
+function initLeaderboard(){
+  const q = query(collection(db,'users'), orderBy('weeklyTotal','desc'));
+  onSnapshot(q, snap=>{
+    leaderboardList.innerHTML='';
+    snap.forEach(d=>{
+      const data=d.data();
+      const div = document.createElement('div');
+      div.className='flex justify-between p-2 bg-gray-100 rounded cursor-pointer';
+      div.innerHTML=`<span>${data.fullname||'—'}</span><span>${data.weeklyTotal||0}</span>`;
+      div.onclick = ()=>selectUser(d.id, data);
+      leaderboardList.appendChild(div);
+    });
+  });
+}
+
+// Real-time users list
+function initUsers(){
+  const q = query(collection(db,'users'), orderBy('fullname'));
+  onSnapshot(q, snap=>{
+    usersList.innerHTML='';
+    snap.forEach(d=>{
+      const data=d.data();
+      const uid = d.id;
+      const div = document.createElement('div');
+      div.className='flex justify-between items-center p-2 bg-gray-100 rounded cursor-pointer';
+      div.innerHTML=`<span>${data.fullname||'—'}</span>
+        <div class="flex gap-2">
+          <button class="bg-green-500 text-white px-2 py-1 rounded" data-action="promote" data-uid="${uid}">Promote</button>
+          <button class="bg-yellow-500 text-white px-2 py-1 rounded" data-action="demote" data-uid="${uid}">Demote</button>
+          <button class="bg-red-500 text-white px-2 py-1 rounded" data-action="delete" data-uid="${uid}">Delete</button>
+        </div>
+      `;
+      usersList.appendChild(div);
+
+      // Action buttons
+      div.querySelectorAll('[data-action]').forEach(btn=>{
+        btn.onclick = async e=>{
+          const uid = e.target.dataset.uid;
+          const action = e.target.dataset.action;
+          if(action==='delete') await deleteDoc(doc(db,'users',uid));
+          else if(action==='promote') await updateDoc(doc(db,'users',uid), {role:'admin'});
+          else if(action==='demote') await updateDoc(doc(db,'users',uid), {role:'user'});
+        }
+      });
+
+      // Click to select user
+      div.onclick = ()=>selectUser(uid, data);
+    });
+  });
+}
+
+// Select a user to edit
+function selectUser(uid, data){
+  selectedUserId = uid;
+  selectedUserDiv.innerHTML = '';
+
+  // Profile picture + name
+  const profileHTML = data.profilePicURL 
+    ? `<img src="${data.profilePicURL}" class="w-12 h-12 rounded-full mb-2">` 
+    : `<div class="w-12 h-12 bg-green-500 text-white flex items-center justify-center rounded-full mb-2">${data.fullname.split(' ').map(n=>n[0]).join('').slice(0,2)}</div>`;
+  
+  const nameInput = document.createElement('input');
+  nameInput.value = data.fullname;
+  nameInput.className = "border px-2 py-1 w-full rounded mb-2";
+  nameInput.onchange = e=>updateUserField('fullname', e.target.value);
+
+  const emailInput = document.createElement('input');
+  emailInput.value = data.email;
+  emailInput.className = "border px-2 py-1 w-full rounded mb-2";
+  emailInput.onchange = e=>updateUserField('email', e.target.value);
+
+  const profileFile = document.createElement('input');
+  profileFile.type = "file";
+  profileFile.accept = "image/*";
+  profileFile.onchange = e=>{
+    const file = e.target.files[0];
+    if(!file) return;
+    const storageRef = ref(storage, `profilePics/${uid}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
+    uploadTask.on('state_changed', null, null, async ()=>{
+      const url = await getDownloadURL(uploadTask.snapshot.ref);
+      updateUserField('profilePicURL', url);
+    });
+  };
+
+  // Courses
+  const coursesDiv = document.createElement('div');
+  coursesDiv.className='mb-2';
+  coursesDiv.innerHTML='<strong>Courses:</strong>';
+  const courseList = document.createElement('ul');
+  data.courses?.forEach(c=>{
+    const li = document.createElement('li');
+    li.textContent=c;
+    courseList.appendChild(li);
+  });
+  const newCourse = document.createElement('input');
+  newCourse.placeholder='Add new course';
+  newCourse.className='border px-2 py-1 w-full rounded mb-1';
+  const addCourseBtn = document.createElement('button');
+  addCourseBtn.textContent='Add';
+  addCourseBtn.className='bg-green-500 text-white px-2 py-1 rounded mb-2';
+  addCourseBtn.onclick = ()=>addToArrayField('courses', newCourse.value);
+
+  coursesDiv.appendChild(courseList);
+  coursesDiv.appendChild(newCourse);
+  coursesDiv.appendChild(addCourseBtn);
+
+  // Achievements
+  const achieveDiv = document.createElement('div');
+  achieveDiv.className='mb-2';
+  achieveDiv.innerHTML='<strong>Achievements:</strong>';
+  const achieveList = document.createElement('ul');
+  data.achievements?.forEach(a=>{ const li=document.createElement('li'); li.textContent=a; achieveList.appendChild(li); });
+  const newAchieve = document.createElement('input'); newAchieve.placeholder='Add achievement'; newAchieve.className='border px-2 py-1 w-full rounded mb-1';
+  const addAchieveBtn = document.createElement('button'); addAchieveBtn.textContent='Add'; addAchieveBtn.className='bg-blue-500 text-white px-2 py-1 rounded mb-2';
+  addAchieveBtn.onclick = ()=>addToArrayField('achievements', newAchieve.value);
+  achieveDiv.appendChild(achieveList); achieveDiv.appendChild(newAchieve); achieveDiv.appendChild(addAchieveBtn);
+
+  // Certifications
+  const certDiv = document.createElement('div');
+  certDiv.className='mb-2';
+  certDiv.innerHTML='<strong>Certifications:</strong>';
+  const certList = document.createElement('ul');
+  data.certifications?.forEach(a=>{ const li=document.createElement('li'); li.textContent=a; certList.appendChild(li); });
+  const newCert = document.createElement('input'); newCert.placeholder='Add certification'; newCert.className='border px-2 py-1 w-full rounded mb-1';
+  const addCertBtn = document.createElement('button'); addCertBtn.textContent='Add'; addCertBtn.className='bg-purple-500 text-white px-2 py-1 rounded mb-2';
+  addCertBtn.onclick = ()=>addToArrayField('certifications', newCert.value);
+  certDiv.appendChild(certList); certDiv.appendChild(newCert); certDiv.appendChild(addCertBtn);
+
+  selectedUserDiv.appendChild(document.createRange().createContextualFragment(profileHTML));
+  selectedUserDiv.appendChild(nameInput);
+  selectedUserDiv.appendChild(emailInput);
+  selectedUserDiv.appendChild(profileFile);
+  selectedUserDiv.appendChild(coursesDiv);
+  selectedUserDiv.appendChild(achieveDiv);
+  selectedUserDiv.appendChild(certDiv);
+
+  // Weekly progress chart
+  renderUserProgressChart(data.weeklyScores||{});
+}
+
+// Update user field
+function updateUserField(field, value){
+  if(!selectedUserId) return;
+  updateDoc(doc(db,'users',selectedUserId), {[field]:value});
+}
+
+// Add to array field
+function addToArrayField(field, value){
+  if(!selectedUserId || !value) return;
+  updateDoc(doc(db,'users',selectedUserId), {[field]:firebase.firestore.FieldValue.arrayUnion(value)});
+  selectUser(selectedUserId, {}); // Refresh
+}
+
+// Chart
+function renderUserProgressChart(scores){
+  const days = []; const values=[];
+  const today = new Date();
+  for(let i=6;i>=0;i--){
+    const d=new Date(today); d.setDate(today.getDate()-i);
+    const key=d.toISOString().split('T')[0];
+    days.push(key.slice(5)); // MM-DD
+    values.push(scores[key]||0);
+  }
+
+  if(currentUserRole === 'admin'){
+  const usersCol = collection(db,'users');
+  onSnapshot(usersCol, snapshot => {
+    const adminLeaderboard = document.getElementById('leaderboardList');
+    adminLeaderboard.innerHTML = '';
+    snapshot.forEach(docSnap => {
+      const u = docSnap.data();
+      const totalScore = u.tests ? u.tests.reduce((s,t)=>s+t.score,0) : 0;
+      const div = document.createElement('div');
+      div.className = 'flex justify-between p-2 bg-gray-100 rounded';
+      div.innerHTML = `<span>${u.fullname}</span><span>${totalScore}</span>`;
+      adminLeaderboard.appendChild(div);
+    });
+  });
+}
+
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(userProgressChartCtx,{
+    type:'bar',
+    data:{ labels:days, datasets:[{label:'Score', data:values, backgroundColor:'#34D399'}] },
+    options:{ responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true,stepSize:5}} }
+  });
+}
+
+initLeaderboard();
+initUsers();
+
+
+
+
+
+</script>
+</body>
+</html>

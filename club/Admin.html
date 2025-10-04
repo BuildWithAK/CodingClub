@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login - Coding Club</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+
+<div class="bg-white p-8 rounded shadow-md w-full max-w-md">
+  <h2 class="text-2xl font-bold mb-6 text-center">Admin Login</h2>
+  <input type="email" id="email" placeholder="Email" class="w-full mb-4 px-3 py-2 border rounded">
+  <input type="password" id="password" placeholder="Password" class="w-full mb-4 px-3 py-2 border rounded">
+  <button id="loginBtn" class="w-full bg-blue-500 text-white py-2 rounded">Login</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAn5x2mrHMe9tVAEGDL7XbQoL6RG-xbUfw",
+  authDomain: "codingclub-website.firebaseapp.com",
+  projectId: "codingclub-website",
+  storageBucket: "codingclub-website.firebasestorage.app",
+  messagingSenderId: "349607815709",
+  appId: "1:349607815709:web:edbdfe68f217fba585f4f4",
+  measurementId: "G-5NDXD3NWK2"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+
+  if(!email || !password) return alert("Fill all fields");
+
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCred.user.uid;
+    const userDoc = await getDoc(doc(db,'users',uid));
+    if(userDoc.exists() && userDoc.data().role === 'admin') {
+      window.location.href = 'Admin/admindashboard.html';
+    } else {
+      alert("You are not an admin!");
+      await auth.signOut();
+    }
+  } catch(e) {
+    alert(e.message);
+  }
+});
+</script>
+</body>
+</html>
